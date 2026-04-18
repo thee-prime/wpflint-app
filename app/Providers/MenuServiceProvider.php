@@ -11,6 +11,7 @@ namespace {{NAMESPACE}}\Providers;
 
 use {{NAMESPACE}}\WPFlint\Admin\AdminPage;
 use {{NAMESPACE}}\WPFlint\Providers\ServiceProvider;
+use {{NAMESPACE}}\WPFlint\View\View;
 
 /**
  * Define every top-level menu page and its subpages here.
@@ -47,9 +48,8 @@ class MenuServiceProvider extends ServiceProvider {
         ->position( 80 )
         ->render(
             function () {
-                echo '<div class="wrap"><h1>'
-                    . esc_html( get_admin_page_title() )
-                    . '</h1></div>';
+                wp_enqueue_style( '{{TEXT_DOMAIN}}-app' );
+                View::make( 'admin.app' )->output();
             }
         )
         // Uncomment to add subpages:

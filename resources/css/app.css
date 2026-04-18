@@ -1,0 +1,15 @@
+/* {{PLUGIN_NAME}} — app styles
+ *
+ * This file is auto-registered by ViteAssets::register_css_dir().
+ * Enqueue it in your page template: wp_enqueue_style( '{{TEXT_DOMAIN}}-app' );
+ */
+
+.{{TEXT_DOMAIN}}-app {
+  box-sizing: border-box;
+}
+
+.{{TEXT_DOMAIN}}-app *,
+.{{TEXT_DOMAIN}}-app *::before,
+.{{TEXT_DOMAIN}}-app *::after {
+  box-sizing: inherit;
+}

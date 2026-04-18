@@ -260,6 +260,111 @@ wf_ok( 'Created  routes/api.php' );
 wf_process_file( $root . '/app/Jobs/ExampleJob.php', $tokens );
 wf_ok( 'Created  app/Jobs/ExampleJob.php' );
 
+// ── Step 4b: Frontend templates ───────────────────────────────────────────────
+
+wf_process_file( $root . '/resources/js/app.jsx', $tokens );
+wf_ok( 'Created  resources/js/app.jsx' );
+
+wf_process_file( $root . '/resources/js/components/App.jsx', $tokens );
+wf_ok( 'Created  resources/js/components/App.jsx' );
+
+wf_process_file( $root . '/resources/css/app.css', $tokens );
+wf_ok( 'Created  resources/css/app.css' );
+
+wf_process_file( $root . '/templates/admin/app.php', $tokens );
+wf_ok( 'Created  templates/admin/app.php' );
+
+wf_process_file( $root . '/vite.config.js', $tokens );
+wf_ok( 'Updated  vite.config.js' );
+
+wf_process_file( $root . '/package.json', $tokens );
+wf_ok( 'Updated  package.json' );
+
+// ── Step 4c: Tests ────────────────────────────────────────────────────────────
+
+wf_process_file( $root . '/tests/Unit/ExampleJobTest.php', $tokens );
+wf_ok( 'Created  tests/Unit/ExampleJobTest.php' );
+
+wf_process_file( $root . '/tests/bootstrap.php', $tokens );
+wf_ok( 'Updated  tests/bootstrap.php' );
+
+wf_process_file( $root . '/.env.testing.example', $tokens );
+wf_ok( 'Created  .env.testing.example' );
+
+// ── Step 4d: Tailwind ─────────────────────────────────────────────────────────
+
+wf_out();
+wf_out( '  ' . str_repeat( '─', $width ) );
+
+$use_tailwind = wf_confirm( 'Add Tailwind CSS for React styling?', false );
+
+if ( $use_tailwind ) {
+    // Inject @tailwind directives into resources/css/app.css.
+    $css_path    = $root . '/resources/css/app.css';
+    $css_content = file_exists( $css_path ) ? (string) file_get_contents( $css_path ) : '';
+    $tailwind_directives = "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n";
+    file_put_contents( $css_path, $tailwind_directives . $css_content );
+
+    // Write tailwind.config.js — preflight disabled for WP admin compatibility.
+    $tailwind_cfg = <<<'JS'
+/** @type {import('tailwindcss').Config} */
+export default {
+    content: [
+        './resources/js/**/*.{js,jsx}',
+        './templates/**/*.php',
+    ],
+    corePlugins: {
+        // Disable Tailwind's CSS reset so it does not fight WordPress admin styles.
+        preflight: false,
+    },
+    theme: {
+        extend: {},
+    },
+    plugins: [],
+};
+JS;
+    file_put_contents( $root . '/tailwind.config.js', $tailwind_cfg . PHP_EOL );
+
+    // Replace the placeholder in vite.config.js with the actual Tailwind plugin import.
+    $vite_path    = $root . '/vite.config.js';
+    $vite_content = file_exists( $vite_path ) ? (string) file_get_contents( $vite_path ) : '';
+    $vite_content = str_replace(
+        "import react from '@vitejs/plugin-react';",
+        "import react from '@vitejs/plugin-react';\nimport tailwindcss from '@tailwindcss/vite';",
+        $vite_content
+    );
+    $vite_content = str_replace(
+        '// __TAILWIND_PLUGIN__',
+        'tailwindcss(),',
+        $vite_content
+    );
+    file_put_contents( $vite_path, $vite_content );
+
+    // Add Tailwind packages to package.json.
+    $pkg_path = $root . '/package.json';
+    $pkg_raw  = (string) file_get_contents( $pkg_path );
+    $pkg      = json_decode( $pkg_raw, true );
+    if ( is_array( $pkg ) ) {
+        $pkg['devDependencies']['tailwindcss']       = '^4.0.0';
+        $pkg['devDependencies']['@tailwindcss/vite'] = '^4.0.0';
+        file_put_contents( $pkg_path, json_encode( $pkg, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . PHP_EOL );
+    }
+
+    wf_ok( 'Tailwind configured  (preflight disabled for WordPress admin)' );
+}
+
+// ── Step 4e: npm install ──────────────────────────────────────────────────────
+
+if ( file_exists( $root . '/package.json' ) ) {
+    echo '  ...  Installing frontend Node dependencies (npm install)' . PHP_EOL;
+    $npm_ok = wf_run( 'npm install --prefix ' . escapeshellarg( $root ) . ' --silent 2>&1' );
+    if ( $npm_ok ) {
+        wf_ok( 'npm      node_modules installed' );
+    } else {
+        wf_warn( 'npm install failed. Run "npm install" manually after setup.' );
+    }
+}
+
 // ── Step 5: config/app.php ────────────────────────────────────────────────────
 
 wf_process_file( $root . '/config/app.php', $tokens );
@@ -426,8 +531,26 @@ wf_out();
 wf_out( '    1. Copy this folder into wp-content/plugins/' );
 wf_out( '    2. Activate "' . $plugin_name . '" in WordPress admin' );
 wf_out( '    3. Register routes in routes/ajax.php and routes/api.php' );
-wf_out( '    4. Add admin menus in AppServiceProvider::register_menus()' );
-wf_out( '    5. Generate classes with WP-CLI (from your plugin folder):' );
+wf_out( '    4. Add admin menus in app/Providers/MenuServiceProvider.php' );
+wf_out( '    5. Frontend (React + Vite):' );
+wf_out();
+wf_out( '         npm run dev        # hot-reload dev server' );
+wf_out( '         npm run build      # production build → dist/' );
+wf_out( '         npm run lint       # ESLint' );
+wf_out();
+wf_out( '    6. PHP quality:' );
+wf_out();
+wf_out( '         composer test      # PHPUnit' );
+wf_out( '         composer lint      # PHPCS' );
+wf_out( '         composer lint:fix  # PHPCBF auto-fix' );
+wf_out();
+wf_out( '    7. Browser (E2E) tests:' );
+wf_out();
+wf_out( '         cp .env.testing.example .env.testing  # fill in WP credentials' );
+wf_out( '         npx playwright install chromium' );
+wf_out( '         npx playwright test' );
+wf_out();
+wf_out( '    8. Generate classes with WP-CLI (from your plugin folder):' );
 wf_out();
 wf_out( '         wp wpflint make:controller OrderController' );
 wf_out( '         wp wpflint make:controller OrderController --rest' );

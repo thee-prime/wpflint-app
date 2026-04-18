@@ -1,5 +1,6 @@
 # WordPress.org distribution — these paths are excluded from the SVN/zip build.
 # vendor-prefixed/ is intentionally NOT listed — it must ship with the plugin.
+# dist/ ships as-is (compiled assets); resources/js/ and resources/css/ are source only.
 
 /.git
 /.github
@@ -10,14 +11,26 @@
 /vendor
 /node_modules
 /docs
+/resources/js
+/resources/css
 install.php
 composer.json
 composer.lock
 phpunit.xml
 phpunit.xml.dist
+phpcs.xml.dist
 .phpcs.xml
 .phpcs.xml.dist
 .phpunit.result.cache
+package.json
+package-lock.json
+vite.config.js
+tailwind.config.js
+.eslintrc.cjs
+.eslintignore
+playwright.config.js
+.env.testing
+.env.testing.example
 .gitignore
 .gitattributes
 .distignore

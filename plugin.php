@@ -30,6 +30,11 @@ use {{NAMESPACE}}\WPFlint\Application;
 use {{NAMESPACE}}\WPFlint\Lifecycle\Lifecycle;
 
 $app = Application::get_instance( __DIR__ );
+
+// Bind plugin path and URL to the container so providers don't need __FILE__ tricks.
+$app->instance( 'plugin.dir', plugin_dir_path( __FILE__ ) );
+$app->instance( 'plugin.url', plugin_dir_url( __FILE__ ) );
+
 $app->register( {{NAMESPACE}}\Providers\AppServiceProvider::class );
 $app->register( {{NAMESPACE}}\Providers\MenuServiceProvider::class );
 

@@ -5,6 +5,12 @@
 
 # Generated
 /languages/*.mo
+.phpunit.result.cache
+playwright-report/
+test-results/
+
+# Environment
+.env.testing
 
 # System
 .DS_Store
