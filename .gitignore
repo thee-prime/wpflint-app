@@ -3,6 +3,9 @@
 /vendor-prefixed/
 /node_modules/
 
+# Local test projects created by running composer create-project inside this repo
+/wpflint-app/
+
 # Generated
 /languages/*.mo
 .phpunit.result.cache

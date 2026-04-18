@@ -305,13 +305,16 @@ wf_out( '  ' . str_repeat( '─', $width ) );
 $use_tailwind = wf_confirm( 'Add Tailwind CSS for React styling?', false );
 
 if ( $use_tailwind ) {
-    // Inject @tailwind directives into resources/css/app.css.
+    // Inject Tailwind v4 CSS imports into resources/css/app.css.
+    // v4 uses @import, NOT the old @tailwind directives.
+    // Preflight (CSS reset) is disabled by omitting its import — safe for WP admin.
     $css_path    = $root . '/resources/css/app.css';
     $css_content = file_exists( $css_path ) ? (string) file_get_contents( $css_path ) : '';
-    $tailwind_directives = "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n";
+    $tailwind_directives = "/* Tailwind v4 — preflight omitted so WP admin styles are unaffected. */\n@import \"tailwindcss/theme\" layer(theme);\n@import \"tailwindcss/utilities\" layer(utilities);\n\n";
     file_put_contents( $css_path, $tailwind_directives . $css_content );
 
     // Write tailwind.config.js — preflight disabled for WP admin compatibility.
+    // Tailwind v4 config: content paths only. Preflight is disabled via CSS imports.
     $tailwind_cfg = <<<'JS'
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -319,14 +322,6 @@ export default {
         './resources/js/**/*.{js,jsx}',
         './templates/**/*.php',
     ],
-    corePlugins: {
-        // Disable Tailwind's CSS reset so it does not fight WordPress admin styles.
-        preflight: false,
-    },
-    theme: {
-        extend: {},
-    },
-    plugins: [],
 };
 JS;
     file_put_contents( $root . '/tailwind.config.js', $tailwind_cfg . PHP_EOL );
