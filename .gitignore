@@ -1,0 +1,18 @@
+# Dependencies
+/vendor/
+/vendor-prefixed/
+/node_modules/
+
+# Generated
+/languages/*.mo
+
+# System
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

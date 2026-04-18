@@ -1,0 +1,24 @@
+# WordPress.org distribution — these paths are excluded from the SVN/zip build.
+# vendor-prefixed/ is intentionally NOT listed — it must ship with the plugin.
+
+/.git
+/.github
+/.claude
+/.idea
+/.vscode
+/tests
+/vendor
+/node_modules
+/docs
+install.php
+composer.json
+composer.lock
+phpunit.xml
+phpunit.xml.dist
+.phpcs.xml
+.phpcs.xml.dist
+.phpunit.result.cache
+.gitignore
+.gitattributes
+.distignore
+*.log
