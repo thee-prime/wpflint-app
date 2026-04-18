@@ -5,7 +5,7 @@ The official project skeleton for [WPFlint](https://github.com/thee-prime/wpflin
 ## Quick Start
 
 ```bash
-composer create-project wpflint/wpflint my-shop-plugin
+composer create-project thee-prime/wpflint-app my-shop-plugin
 ```
 
 The setup wizard runs automatically and asks you:

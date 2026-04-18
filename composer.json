@@ -1,6 +1,6 @@
 {
-    "name": "wpflint/wpflint",
-    "description": "WPFlint WordPress plugin skeleton — start your plugin with composer create-project wpflint/wpflint my-plugin",
+    "name": "thee-prime/wpflint-app",
+    "description": "WPFlint WordPress plugin skeleton — start your plugin with composer create-project thee-prime/wpflint-app my-plugin",
     "type": "project",
     "license": "MIT",
     "keywords": ["wordpress", "plugin", "wpflint", "skeleton"],
