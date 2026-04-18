@@ -12,17 +12,29 @@ declare(strict_types=1);
 namespace {{NAMESPACE}}\Tests\Unit;
 
 use {{NAMESPACE}}\Jobs\ExampleJob;
-use WP_Mock\Tools\TestCase;
+use Brain\Monkey;
+use Brain\Monkey\Functions;
+use PHPUnit\Framework\TestCase;
 
 class ExampleJobTest extends TestCase {
 
+    protected function setUp(): void {
+        parent::setUp();
+        Monkey\setUp();
+    }
+
+    protected function tearDown(): void {
+        Monkey\tearDown();
+        parent::tearDown();
+    }
+
     public function test_handle_returns_early_when_user_not_found(): void {
-        WP_Mock::userFunction( 'get_userdata' )->andReturn( false );
+        Functions\when( 'get_userdata' )->justReturn( false );
 
         $job = new ExampleJob( 999 );
         $job->handle(); // must not throw
 
-        $this->assertConditionsMet();
+        $this->assertTrue( true );
     }
 
     public function test_default_queue_is_default(): void {
