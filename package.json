@@ -1,9 +1,11 @@
 {
   "name": "{{TEXT_DOMAIN}}",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "start": "vite build --watch",
     "preview": "vite preview",
     "lint": "eslint resources/js --ext .js,.jsx",
     "test:e2e": "playwright test"
