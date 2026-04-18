@@ -34,21 +34,109 @@ my-shop-plugin/
 │   │   ├── Controllers/
 │   │   ├── Middleware/
 │   │   └── Requests/
+│   ├── Events/
+│   ├── Jobs/
+│   │   └── ExampleJob.php
+│   ├── Listeners/
 │   ├── Models/
 │   ├── Providers/
 │   │   └── AppServiceProvider.php   ← start here
-│   ├── Events/
-│   ├── Listeners/
-│   ├── Jobs/
 │   └── Rules/
 ├── config/
 │   └── app.php
 ├── database/
 │   └── migrations/
+├── routes/
+│   ├── ajax.php                     ← wp_ajax_* actions
+│   └── api.php                      ← REST API endpoints
 ├── templates/
 ├── vendor-prefixed/                 ← Strauss output (namespace-isolated framework)
 ├── my-shop.php                      ← main plugin file
 └── uninstall.php
+```
+
+## Routes
+
+### AJAX routes — `routes/ajax.php`
+
+```php
+use MyShop\Http\Controllers\OrderController;
+
+// Logged-in users only:
+$router->ajax( 'my-shop/save-order', [ OrderController::class, 'store' ] )
+       ->middleware( [ 'nonce:my_shop_save_order', 'can:edit_posts' ] );
+
+// Public endpoint (guests + logged-in):
+$router->ajax( 'my-shop/get-prices', [ OrderController::class, 'prices' ] )
+       ->nopriv();
+```
+
+### REST API routes — `routes/api.php`
+
+```php
+use MyShop\Http\Controllers\OrderController;
+
+$router->rest( 'my-shop/v1', function ( $r ) {
+    $r->get(    '/orders',             [ OrderController::class, 'index'   ] );
+    $r->post(   '/orders',             [ OrderController::class, 'store'   ] );
+    $r->get(    '/orders/(?P<id>\d+)', [ OrderController::class, 'show'    ] );
+    $r->put(    '/orders/(?P<id>\d+)', [ OrderController::class, 'update'  ] );
+    $r->delete( '/orders/(?P<id>\d+)', [ OrderController::class, 'destroy' ] );
+} );
+```
+
+## Admin menus
+
+Registered in `AppServiceProvider::register_menus()` via the `AdminPage` fluent builder:
+
+```php
+AdminPage::make( __( 'My Shop', 'my-shop' ), 'my-shop' )
+    ->icon( 'dashicons-cart' )
+    ->position( 56 )
+    ->render( function () { include plugin_dir_path( __FILE__ ) . 'templates/main.php'; } )
+    ->submenu( __( 'Settings', 'my-shop' ), 'my-shop-settings', function () {
+        include plugin_dir_path( __FILE__ ) . 'templates/settings.php';
+    } )
+    ->register();
+```
+
+## Background jobs (queue)
+
+1. Uncomment `QueueServiceProvider` in `AppServiceProvider::register()`.
+2. Run `wp wpflint migrate` to create the jobs tables.
+3. Dispatch jobs anywhere in your plugin:
+
+```php
+use MyShop\Jobs\ExampleJob;
+
+wpflint_dispatch( new ExampleJob( $user_id ) );
+
+// Delayed (runs after 60 s):
+wpflint_dispatch( ( new ExampleJob( $user_id ) )->delay( 60 ) );
+
+// Different queue, max 5 attempts:
+wpflint_dispatch( ( new ExampleJob( $user_id ) )->on_queue( 'emails' )->tries( 5 ) );
+```
+
+## WP-CLI commands
+
+All generator commands are available inside WordPress via WP-CLI:
+
+```bash
+wp wpflint make:controller  OrderController
+wp wpflint make:controller  OrderController --rest
+wp wpflint make:model       Order
+wp wpflint make:model       Order --migration
+wp wpflint make:migration   create_orders_table
+wp wpflint make:event       OrderPlaced
+wp wpflint make:listener    SendConfirmation
+wp wpflint make:middleware  EnsureStoreIsOpen
+wp wpflint make:request     StoreOrderRequest
+wp wpflint make:rule        PhoneNumber
+wp wpflint make:provider    OrderServiceProvider
+wp wpflint make:command     ProcessOrdersCommand
+wp wpflint migrate
+wp wpflint cache:clear
 ```
 
 ## Why Strauss?
@@ -74,11 +162,7 @@ cp -r . /path/to/wp-content/plugins/my-shop/
 ln -s $(pwd) /path/to/wp-content/plugins/my-shop
 ```
 
-Activate **My Shop** in the WordPress admin and start building in `app/Providers/AppServiceProvider.php`.
-
-## Framework docs
-
-→ [https://github.com/thee-prime/wpflint](https://github.com/thee-prime/wpflint)
+Activate **My Shop** in the WordPress admin and start building.
 
 ## Requirements
 

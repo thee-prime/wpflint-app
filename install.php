@@ -244,17 +244,33 @@ wf_ok( 'Created  ' . $plugin_slug . '.php' );
 wf_process_file( $root . '/app/Providers/AppServiceProvider.php', $tokens );
 wf_ok( 'Created  app/Providers/AppServiceProvider.php' );
 
-// ── Step 3: config/app.php ────────────────────────────────────────────────────
+wf_process_file( $root . '/app/Providers/MenuServiceProvider.php', $tokens );
+wf_ok( 'Created  app/Providers/MenuServiceProvider.php' );
+
+// ── Step 3: Routes ────────────────────────────────────────────────────────────
+
+wf_process_file( $root . '/routes/ajax.php', $tokens );
+wf_ok( 'Created  routes/ajax.php' );
+
+wf_process_file( $root . '/routes/api.php', $tokens );
+wf_ok( 'Created  routes/api.php' );
+
+// ── Step 4: Jobs ──────────────────────────────────────────────────────────────
+
+wf_process_file( $root . '/app/Jobs/ExampleJob.php', $tokens );
+wf_ok( 'Created  app/Jobs/ExampleJob.php' );
+
+// ── Step 5: config/app.php ────────────────────────────────────────────────────
 
 wf_process_file( $root . '/config/app.php', $tokens );
 wf_ok( 'Updated  config/app.php' );
 
-// ── Step 4: uninstall.php ────────────────────────────────────────────────────
+// ── Step 6: uninstall.php ────────────────────────────────────────────────────
 
 wf_process_file( $root . '/uninstall.php', $tokens );
 wf_ok( 'Updated  uninstall.php' );
 
-// ── Step 5: Rewrite composer.json ────────────────────────────────────────────
+// ── Step 7: Rewrite composer.json ────────────────────────────────────────────
 
 $composer_path = $root . '/composer.json';
 $composer_raw  = (string) file_get_contents( $composer_path );
@@ -291,7 +307,7 @@ file_put_contents( $composer_path, $new_json );
 
 wf_ok( 'Updated  composer.json  (namespace → ' . $namespace . '\\)' );
 
-// ── Step 6: Run Strauss ───────────────────────────────────────────────────────
+// ── Step 8: Run Strauss ───────────────────────────────────────────────────────
 
 $strauss_bin = $root . '/vendor/bin/strauss';
 
@@ -307,13 +323,13 @@ if ( file_exists( $strauss_bin ) ) {
     wf_warn( 'Strauss binary not found. Run "composer install" then "composer strauss".' );
 }
 
-// ── Step 7: composer dump-autoload ───────────────────────────────────────────
+// ── Step 9: composer dump-autoload ───────────────────────────────────────────
 
 echo '  ...  Running composer dump-autoload' . PHP_EOL;
 wf_run( 'composer dump-autoload --quiet --working-dir=' . escapeshellarg( $root ) );
 wf_ok( 'Autoloader regenerated' );
 
-// ── Step 8: MCP server ───────────────────────────────────────────────────────
+// ── Step 10: MCP server ──────────────────────────────────────────────────────
 
 wf_out();
 wf_out( '  ' . str_repeat( '─', $width ) );
@@ -336,10 +352,23 @@ if ( $setup_mcp ) {
         $files = glob( $root . '/vendor/thee-prime/wpflint/mcp-server/*' );
         if ( is_array( $files ) ) {
             foreach ( $files as $file ) {
-                copy( $file, $mcp_dir . '/' . basename( $file ) );
+                if ( is_file( $file ) ) {
+                    copy( $file, $mcp_dir . '/' . basename( $file ) );
+                }
             }
         }
         wf_ok( 'Copied   mcp-server/ to project root' );
+
+        // Install Node.js dependencies (node_modules not tracked in git).
+        if ( file_exists( $mcp_dir . '/package.json' ) ) {
+            echo '  ...  Installing MCP server Node dependencies (npm install)' . PHP_EOL;
+            $npm_ok = wf_run( 'npm install --prefix ' . escapeshellarg( $mcp_dir ) . ' --silent 2>&1' );
+            if ( $npm_ok ) {
+                wf_ok( 'npm      node_modules installed in mcp-server/' );
+            } else {
+                wf_warn( 'npm install failed. Run "npm install" inside mcp-server/ manually.' );
+            }
+        }
     } elseif ( file_exists( $mcp_source ) ) {
         // Fallback: just reference the vendor path.
         $mcp_dir = dirname( $mcp_source );
@@ -376,7 +405,7 @@ if ( $setup_mcp ) {
     }
 }
 
-// ── Step 9: Self-delete ───────────────────────────────────────────────────────
+// ── Step 11: Self-delete ─────────────────────────────────────────────────────
 
 // Remove install.php — it has done its job.
 // We do this last so the file is present if anything above fails mid-way.
@@ -396,8 +425,22 @@ wf_out( '  Next steps:' );
 wf_out();
 wf_out( '    1. Copy this folder into wp-content/plugins/' );
 wf_out( '    2. Activate "' . $plugin_name . '" in WordPress admin' );
-wf_out( '    3. Start building in app/Providers/AppServiceProvider.php' );
+wf_out( '    3. Register routes in routes/ajax.php and routes/api.php' );
+wf_out( '    4. Add admin menus in AppServiceProvider::register_menus()' );
+wf_out( '    5. Generate classes with WP-CLI (from your plugin folder):' );
 wf_out();
-wf_out( '  Docs → https://github.com/wpflint/wpflint' );
+wf_out( '         wp wpflint make:controller OrderController' );
+wf_out( '         wp wpflint make:controller OrderController --rest' );
+wf_out( '         wp wpflint make:model      Order' );
+wf_out( '         wp wpflint make:model      Order --migration' );
+wf_out( '         wp wpflint make:migration  create_orders_table' );
+wf_out( '         wp wpflint make:event      OrderPlaced' );
+wf_out( '         wp wpflint make:listener   SendConfirmation' );
+wf_out( '         wp wpflint make:middleware EnsureStoreIsOpen' );
+wf_out( '         wp wpflint make:request    StoreOrderRequest' );
+wf_out( '         wp wpflint migrate' );
+wf_out( '         wp wpflint cache:clear' );
+wf_out();
+wf_out( '  Docs → https://github.com/thee-prime/wpflint' );
 wf_out( '  ' . str_repeat( '═', $width ) );
 wf_out();

@@ -1,46 +1,50 @@
 <?php
+/**
+ * Application service provider — main entry point for your plugin.
+ *
+ * @package {{NAMESPACE}}\Providers
+ */
 
 declare(strict_types=1);
 
 namespace {{NAMESPACE}}\Providers;
 
+use {{NAMESPACE}}\WPFlint\Http\Router;
 use {{NAMESPACE}}\WPFlint\Providers\ServiceProvider;
 
 /**
- * Application service provider.
+ * Register services and boot routes and WordPress hooks.
  *
- * This is the main entry point for registering your plugin's
- * services and hooking into WordPress.
- *
- * register() → bind services into the container (no WP calls here).
- * boot()     → register routes, actions, filters (WP is ready).
- *
- * @package {{NAMESPACE}}
+ * register() — bind to the container. No WordPress calls here; WP is not ready.
+ * boot()     — register routes and actions. Called on 'init'.
  */
 class AppServiceProvider extends ServiceProvider {
 
     /**
      * Bind services into the container.
      *
-     * Called before WordPress init. Use $this->app->singleton() / bind() here.
-     * Do NOT call any WordPress functions in this method.
+     * @return void
      */
     public function register(): void {
-        // Example:
+        // Enable background jobs (DB-backed queue via WP-Cron):
+        // $this->app->register( \{{NAMESPACE}}\WPFlint\Queue\QueueServiceProvider::class );
+
+        // Bind your own services:
         // $this->app->singleton( OrderService::class, fn( $app ) => new OrderService() );
     }
 
     /**
-     * Boot the provider.
+     * Boot the provider — load routes and register WordPress hooks.
      *
-     * Called on WordPress 'init'. Register routes, actions, metaboxes,
-     * post types, etc. here.
+     * @return void
      */
     public function boot(): void {
-        // Example:
-        // $router = $this->app->make( \{{NAMESPACE}}\WPFlint\Http\Router::class );
-        // $router->ajax( '{{TEXT_DOMAIN}}/save', [ OrderController::class, 'store' ] )
-        //        ->middleware( [ 'nonce:save_order', 'can:edit_posts' ] );
-        // $router->boot();
+        $router = $this->app->make( Router::class );
+        $root   = dirname( dirname( __DIR__ ) );
+
+        require $root . '/routes/ajax.php';
+        require $root . '/routes/api.php';
+
+        $router->boot();
     }
 }

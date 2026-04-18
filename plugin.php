@@ -31,6 +31,7 @@ use {{NAMESPACE}}\WPFlint\Lifecycle\Lifecycle;
 
 $app = Application::get_instance( __DIR__ );
 $app->register( {{NAMESPACE}}\Providers\AppServiceProvider::class );
+$app->register( {{NAMESPACE}}\Providers\MenuServiceProvider::class );
 
 Lifecycle::for( __FILE__ )
     ->on_activate(
