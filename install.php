@@ -174,9 +174,11 @@ wf_out();
 $root = dirname( __FILE__ );
 
 // Guess a sensible default plugin name from the folder name.
-$dir_name    = basename( $root );
-$default_name = str_replace( array( '-', '_' ), ' ', $dir_name );
-$default_name = ucwords( $default_name );
+$dir_name     = basename( $root );
+$default_name = ucwords( str_replace( array( '-', '_' ), ' ', $dir_name ) );
+if ( $default_name === '' ) {
+    $default_name = 'My Plugin';
+}
 
 // ── Collect inputs ────────────────────────────────────────────────────────────
 
@@ -191,9 +193,13 @@ if ( $plugin_name === '' ) {
 $default_slug      = wf_to_slug( $plugin_name );
 $default_namespace = wf_to_namespace( $plugin_name );
 
-$plugin_slug  = wf_ask( 'Plugin slug', $default_slug );
-$namespace    = wf_ask( 'PHP namespace', $default_namespace );
-$text_domain  = wf_ask( 'Text domain', $plugin_slug );
+$plugin_slug = wf_ask( 'Plugin slug', $default_slug );
+if ( $plugin_slug === '' ) {
+    $plugin_slug = $default_slug;
+}
+
+$namespace   = wf_ask( 'PHP namespace', $default_namespace );
+$text_domain = wf_ask( 'Text domain', $plugin_slug );
 $description  = wf_ask( 'Description', 'A WPFlint-powered WordPress plugin.' );
 $author       = wf_ask( 'Author', '' );
 $author_uri   = wf_ask( 'Author URI', '' );
@@ -418,7 +424,9 @@ $strauss_bin = $root . '/vendor/bin/strauss';
 
 if ( file_exists( $strauss_bin ) ) {
     echo '  ...  Running Strauss (prefixing framework namespace)' . PHP_EOL;
-    $ok = wf_run( 'php ' . escapeshellarg( $strauss_bin ) . ' --working_dir=' . escapeshellarg( $root ) );
+    // Strauss reads composer.json from CWD — must be project root.
+    chdir( $root );
+    $ok = wf_run( 'php ' . escapeshellarg( $strauss_bin ) );
     if ( $ok ) {
         wf_ok( 'Strauss  vendor-prefixed/ created  (' . $namespace . '\\WPFlint\\...)' );
     } else {
